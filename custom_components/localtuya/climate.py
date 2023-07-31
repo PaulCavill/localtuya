@@ -17,6 +17,7 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
     PRESET_AWAY,
+    PRESET_BOOST,
     PRESET_ECO,
     PRESET_HOME,
     PRESET_NONE,
@@ -104,6 +105,10 @@ PRESET_SETS = {
         PRESET_AWAY: "Holiday",
         PRESET_HOME: "Program",
         PRESET_NONE: "Manual",
+    },
+    "low/high/anti-frost": {
+        PRESET_AWAY: "af",
+        PRESET_BOOST: "high",
     },
 }
 
