@@ -138,7 +138,7 @@ class TuyaCloudApi:
 
         return "ok"
 
-async def async_get_device_specifications(self, device_id):
+    async def async_get_device_specifications(self, device_id):
         """Obtain the DP ID mappings for a device."""
         resp = await self.async_make_request(
             "GET", url=f"/v1.1/devices/{device_id}/specifications"
