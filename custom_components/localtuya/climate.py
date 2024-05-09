@@ -17,11 +17,12 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
     PRESET_AWAY,
-    PRESET_BOOST,
     PRESET_ECO,
     PRESET_HOME,
     PRESET_NONE,
-    ClimateEntityFeature,
+    SUPPORT_PRESET_MODE,
+    SUPPORT_TARGET_TEMPERATURE,
+    SUPPORT_TARGET_TEMPERATURE_RANGE,
 )
 from homeassistant.const import (
     ATTR_TEMPERATURE,
@@ -29,7 +30,8 @@ from homeassistant.const import (
     PRECISION_HALVES,
     PRECISION_TENTHS,
     PRECISION_WHOLE,
-    UnitOfTemperature,
+    TEMP_CELSIUS,
+    TEMP_FAHRENHEIT,
 )
 
 from .common import LocalTuyaEntity, async_setup_entry
@@ -102,10 +104,6 @@ PRESET_SETS = {
         PRESET_AWAY: "Holiday",
         PRESET_HOME: "Program",
         PRESET_NONE: "Manual",
-    },
-    "low/high/anti-frost": {
-        PRESET_AWAY: "af",
-        PRESET_BOOST: "high",
     },
 }
 
@@ -193,11 +191,11 @@ class LocaltuyaClimate(LocalTuyaEntity, ClimateEntity):
         """Flag supported features."""
         supported_features = 0
         if self.has_config(CONF_TARGET_TEMPERATURE_DP):
-            supported_features = supported_features | ClimateEntityFeature.TARGET_TEMPERATURE
+            supported_features = supported_features | SUPPORT_TARGET_TEMPERATURE
         if self.has_config(CONF_MAX_TEMP_DP):
-            supported_features = supported_features | ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
+            supported_features = supported_features | SUPPORT_TARGET_TEMPERATURE_RANGE
         if self.has_config(CONF_PRESET_DP) or self.has_config(CONF_ECO_DP):
-            supported_features = supported_features | ClimateEntityFeature.PRESET_MODE
+            supported_features = supported_features | SUPPORT_PRESET_MODE
         return supported_features
 
     @property
@@ -217,8 +215,8 @@ class LocaltuyaClimate(LocalTuyaEntity, ClimateEntity):
             self._config.get(CONF_TEMPERATURE_UNIT, DEFAULT_TEMPERATURE_UNIT)
             == TEMPERATURE_FAHRENHEIT
         ):
-            return UnitOfTemperature.FAHRENHEIT
-        return UnitOfTemperature.CELSIUS
+            return TEMP_FAHRENHEIT
+        return TEMP_CELSIUS
 
     @property
     def hvac_mode(self):
@@ -346,7 +344,7 @@ class LocaltuyaClimate(LocalTuyaEntity, ClimateEntity):
         if self.has_config(CONF_MIN_TEMP_DP):
             return self.dps_conf(CONF_MIN_TEMP_DP)
         # DEFAULT_MIN_TEMP is in C
-        if self.temperature_unit == UnitOfTemperature.FAHRENHEIT:
+        if self.temperature_unit == TEMP_FAHRENHEIT:
             return DEFAULT_MIN_TEMP * 1.8 + 32
         else:
             return DEFAULT_MIN_TEMP
@@ -357,7 +355,7 @@ class LocaltuyaClimate(LocalTuyaEntity, ClimateEntity):
         if self.has_config(CONF_MAX_TEMP_DP):
             return self.dps_conf(CONF_MAX_TEMP_DP)
         # DEFAULT_MAX_TEMP is in C
-        if self.temperature_unit == UnitOfTemperature.FAHRENHEIT:
+        if self.temperature_unit == TEMP_FAHRENHEIT:
             return DEFAULT_MAX_TEMP * 1.8 + 32
         else:
             return DEFAULT_MAX_TEMP
