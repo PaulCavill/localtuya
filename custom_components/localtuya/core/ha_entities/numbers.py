@@ -620,32 +620,33 @@ NUMBERS: dict[str, tuple[LocalTuyaEntity, ...]] = {
             name="Calibration swing",
             custom_configs=localtuya_numbers(1, 9),
         ),
-    ),  # Temperature and Humidity Sensor
+    ),
+    # Temperature and Humidity Sensor
     # https://developer.tuya.com/en/docs/iot/categorywsdcg?id=Kaiuz3hinij34
     "wsdcg": (
         LocalTuyaEntity(
-            id=DPCode.MAXTEMP_SET,
+            id=(DPCode.MAXTEMP_SET, DPCode.UPPER_TEMP, DPCode.UPPER_TEMP_F),
             name="Max Temperature",
             icon="mdi:thermometer-high",
             entity_category=EntityCategory.CONFIG,
             custom_configs=localtuya_numbers(-200, 600, unit=UnitOfTemperature.CELSIUS),
         ),
         LocalTuyaEntity(
-            id=DPCode.MINITEMP_SET,
+            id=(DPCode.MINITEMP_SET, DPCode.LOWER_TEMP, DPCode.LOWER_TEMP_F),
             name="Min Temperature",
             icon="mdi:thermometer-low",
             entity_category=EntityCategory.CONFIG,
             custom_configs=localtuya_numbers(-200, 600, unit=UnitOfTemperature.CELSIUS),
         ),
         LocalTuyaEntity(
-            id=DPCode.MAXHUM_SET,
+            id=(DPCode.MAXHUM_SET, DPCode.MAX_HUMI),
             name="Max Humidity",
             icon="mdi:water-percent",
             entity_category=EntityCategory.CONFIG,
             custom_configs=localtuya_numbers(0, 100, unit=PERCENTAGE),
         ),
         LocalTuyaEntity(
-            id=DPCode.MINIHUM_SET,
+            id=(DPCode.MINIHUM_SET, DPCode.MIN_HUMI),
             name="Min Humidity",
             icon="mdi:water-percent",
             entity_category=EntityCategory.CONFIG,
@@ -716,6 +717,115 @@ NUMBERS: dict[str, tuple[LocalTuyaEntity, ...]] = {
             entity_category=EntityCategory.CONFIG,
         ),
     ),
+    # Smart Electricity Meter
+    # https://developer.tuya.com/en/docs/iot/smart-meter?id=Kaiuz4gv6ack7
+    "zndb": (
+        LocalTuyaEntity(
+            id=DPCode.ENERGY_A_CALIBRATION_FWD,
+            name="Energy A Calibrations",
+            custom_configs=localtuya_numbers(800, 1200),
+            icon="mdi:lightning-bolt-outline",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        LocalTuyaEntity(
+            id=DPCode.ENERGY_B_CALIBRATION_FWD,
+            name="Energy A Calibrations",
+            custom_configs=localtuya_numbers(800, 1200),
+            icon="mdi:lightning-bolt-outline",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        LocalTuyaEntity(
+            id=DPCode.ENERGY_C_CALIBRATION_FWD,
+            name="Energy A Calibrations",
+            custom_configs=localtuya_numbers(800, 1200),
+            icon="mdi:lightning-bolt-outline",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        LocalTuyaEntity(
+            id=DPCode.ENERGY_A_CALIBRATION_REV,
+            name="Reverse Energy A Calibrations",
+            custom_configs=localtuya_numbers(800, 1200),
+            icon="mdi:lightning-bolt-outline",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        LocalTuyaEntity(
+            id=DPCode.ENERGY_B_CALIBRATION_REV,
+            name="Reverse Energy B Calibrations",
+            custom_configs=localtuya_numbers(800, 1200),
+            icon="mdi:lightning-bolt-outline",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        LocalTuyaEntity(
+            id=DPCode.ENERGY_C_CALIBRATION_REV,
+            name="Reverse Energy C Calibrations",
+            custom_configs=localtuya_numbers(800, 1200),
+            icon="mdi:lightning-bolt-outline",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        LocalTuyaEntity(
+            id=DPCode.CURRENT_A_CALIBRATION,
+            name="Current A Calibrations",
+            custom_configs=localtuya_numbers(800, 1200),
+            icon="mdi:power-cycle",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        LocalTuyaEntity(
+            id=DPCode.CURRENT_B_CALIBRATION,
+            name="Current B Calibrations",
+            custom_configs=localtuya_numbers(800, 1200),
+            icon="mdi:power-cycle",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        LocalTuyaEntity(
+            id=DPCode.CURRENT_C_CALIBRATION,
+            name="Current C Calibrations",
+            custom_configs=localtuya_numbers(800, 1200),
+            icon="mdi:power-cycle",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        LocalTuyaEntity(
+            id=DPCode.POWER_A_CALIBRATION,
+            name="Power A Calibrations",
+            custom_configs=localtuya_numbers(800, 1200),
+            icon="mdi:power-cycle",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        LocalTuyaEntity(
+            id=DPCode.POWER_B_CALIBRATION,
+            name="Power B Calibrations",
+            custom_configs=localtuya_numbers(800, 1200),
+            icon="mdi:power-cycle",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        LocalTuyaEntity(
+            id=DPCode.POWER_C_CALIBRATION,
+            name="Power C Calibrations",
+            custom_configs=localtuya_numbers(800, 1200),
+            icon="mdi:power-cycle",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        LocalTuyaEntity(
+            id=DPCode.FREQ_CALIBRATION,
+            name="Frequency Calibrations",
+            custom_configs=localtuya_numbers(800, 1200),
+            icon="mdi:sine-wave",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        LocalTuyaEntity(
+            id=DPCode.VOLTAGE_COEF,
+            name="Voltage Calibrations",
+            custom_configs=localtuya_numbers(800, 1200),
+            icon="mdi:flash-triangle-outline",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        LocalTuyaEntity(
+            id=DPCode.REPORT_RATE_CONTROL,
+            name="Report Period",
+            custom_configs=localtuya_numbers(3, 60, unit=UnitOfTime.SECONDS),
+            icon="mdi:timer-sand",
+            entity_category=EntityCategory.CONFIG,
+        ),
+    ),
 }
 
 # Wireless Switch  # also can come as knob switch.
@@ -730,6 +840,17 @@ NUMBERS["wxkg"] = (
     *NUMBERS["kg"],
 )
 
+# Water Valve
+NUMBERS["sfkzq"] = NUMBERS["kg"]
+
+# Water Detector
+# https://developer.tuya.com/en/docs/iot/categorysj?id=Kaiuz3iub2sli
+NUMBERS["sj"] = NUMBERS["wsdcg"]
+
+# Circuit Breaker
+# https://developer.tuya.com/en/docs/iot/dlq?id=Kb0kidk9enyh8
+NUMBERS["dlq"] = NUMBERS["zndb"]
+
 # HDMI Sync Box A1
 NUMBERS["hdmipmtbq"] = NUMBERS["dj"]
 
@@ -738,6 +859,7 @@ NUMBERS["hdmipmtbq"] = NUMBERS["dj"]
 NUMBERS["cjkg"] = NUMBERS["kg"]
 
 NUMBERS["cz"] = NUMBERS["kg"]
+NUMBERS["tdq"] = NUMBERS["kg"]
 NUMBERS["pc"] = NUMBERS["kg"]
 
 # Locker
