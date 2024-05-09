@@ -1,33 +1,56 @@
 """Discovery module for Tuya devices.
 
-Entirely based on tuya-convert.py from tuya-convert:
+based on tuya-convert.py from tuya-convert:
+    https://github.com/ct-Open-Source/tuya-convert/blob/master/scripts/tuya-discovery.py
 
-https://github.com/ct-Open-Source/tuya-convert/blob/master/scripts/tuya-discovery.py
+Maintained by @xZetsubou
 """
 import asyncio
 import json
 import logging
 from hashlib import md5
+from socket import inet_aton
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
+from .common import pytuya
 
 _LOGGER = logging.getLogger(__name__)
 
 UDP_KEY = md5(b"yGAdlopoPVldABfn").digest()
 
+PREFIX_55AA_BIN = b"\x00\x00U\xaa"
+PREFIX_6699_BIN = b"\x00\x00\x66\x99"
+UDP_COMMAND = b"\x00\x00\x00\x00"
+
 DEFAULT_TIMEOUT = 6.0
+
+
+def decrypt(msg, key):
+    def _unpad(data):
+        return data[: -ord(data[len(data) - 1 :])]
+
+    cipher = Cipher(algorithms.AES(key), modes.ECB(), default_backend())
+    decryptor = cipher.decryptor()
+    return _unpad(decryptor.update(msg) + decryptor.finalize()).decode()
 
 
 def decrypt_udp(message):
     """Decrypt encrypted UDP broadcasts."""
-
-    def _unpad(data):
-        return data[: -ord(data[len(data) - 1 :])]
-
-    cipher = Cipher(algorithms.AES(UDP_KEY), modes.ECB(), default_backend())
-    decryptor = cipher.decryptor()
-    return _unpad(decryptor.update(message) + decryptor.finalize()).decode()
+    if message[:4] == PREFIX_55AA_BIN:
+        payload = message[20:-8]
+        if message[8:12] == UDP_COMMAND:
+            return payload
+        return decrypt(payload, UDP_KEY)
+    if message[:4] == PREFIX_6699_BIN:
+        unpacked = pytuya.unpack_message(message, hmac_key=UDP_KEY, no_retcode=None)
+        payload = unpacked.payload.decode()
+        # app sometimes has extra bytes at the end
+        while payload[-1] == chr(0):
+            payload = payload[:-1]
+        return payload
+    return decrypt(message, UDP_KEY)
 
 
 class TuyaDiscovery(asyncio.DatagramProtocol):
@@ -48,9 +71,11 @@ class TuyaDiscovery(asyncio.DatagramProtocol):
         encrypted_listener = loop.create_datagram_endpoint(
             lambda: self, local_addr=("0.0.0.0", 6667), reuse_port=True
         )
-
+        # tuyaApp_encrypted_listener = loop.create_datagram_endpoint(
+        #     lambda: self, local_addr=("0.0.0.0", 7000), reuse_port=True
+        # )
         self._listeners = await asyncio.gather(listener, encrypted_listener)
-        _LOGGER.debug("Listening to broadcasts on UDP port 6666 and 6667")
+        _LOGGER.debug("Listening to broadcasts on UDP port 6666, 6667")
 
     def close(self):
         """Stop discovery."""
@@ -60,21 +85,33 @@ class TuyaDiscovery(asyncio.DatagramProtocol):
 
     def datagram_received(self, data, addr):
         """Handle received broadcast message."""
-        data = data[20:-8]
         try:
-            data = decrypt_udp(data)
-        except Exception:  # pylint: disable=broad-except
-            data = data.decode()
-
-        decoded = json.loads(data)
-        self.device_found(decoded)
+            try:
+                data = decrypt_udp(data)
+            except Exception:  # pylint: disable=broad-except
+                data = data.decode()
+            decoded = json.loads(data)
+            self.device_found(decoded)
+        except:
+            # _LOGGER.debug("Bordcast from app from ip: %s", addr[0])
+            _LOGGER.debug("Failed to decode bordcast from %r: %r", addr[0], data)
 
     def device_found(self, device):
         """Discover a new device."""
-        if device.get("gwId") not in self.devices:
-            self.devices[device.get("gwId")] = device
-            _LOGGER.debug("Discovered device: %s", device)
+        gwid, ip = device.get("gwId"), device.get("ip")
+        # If device found but the ip changed.
+        if gwid in self.devices and (self.devices[gwid].get("ip") != ip):
+            self.devices.pop(gwid)
 
+        if gwid not in self.devices:
+            self.devices[gwid] = device
+            # Sort devices by ip.
+            sort_devices = sorted(
+                self.devices.items(), key=lambda i: inet_aton(i[1].get("ip", "0"))
+            )
+            self.devices = dict(sort_devices)
+
+            _LOGGER.debug("Discovered device: %s", device)
         if self._callback:
             self._callback(device)
 

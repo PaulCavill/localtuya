@@ -1,35 +1,50 @@
 """Constants for localtuya integration."""
 
+from homeassistant.const import EntityCategory, Platform
+
 DOMAIN = "localtuya"
 
 DATA_DISCOVERY = "discovery"
-DATA_CLOUD = "cloud_data"
+
+# Order on priority
+SUPPORTED_PROTOCOL_VERSIONS = ["3.3", "3.1", "3.2", "3.4", "3.5"]
+
 
 # Platforms in this list must support config flows
-PLATFORMS = [
-    "binary_sensor",
-    "climate",
-    "cover",
-    "fan",
-    "light",
-    "number",
-    "select",
-    "sensor",
-    "switch",
-    "vacuum",
-]
-
-TUYA_DEVICES = "tuya_devices"
+PLATFORMS = {
+    "Alarm Control Panel": Platform.ALARM_CONTROL_PANEL,
+    "Binary Sensor": Platform.BINARY_SENSOR,
+    "Button": Platform.BUTTON,
+    "Climate": Platform.CLIMATE,
+    "Cover": Platform.COVER,
+    "Fan": Platform.FAN,
+    "Humidifier": Platform.HUMIDIFIER,
+    "Light": Platform.LIGHT,
+    "Number": Platform.NUMBER,
+    "Remote": Platform.REMOTE,
+    "Select": Platform.SELECT,
+    "Sensor": Platform.SENSOR,
+    "Siren": Platform.SIREN,
+    "Switch": Platform.SWITCH,
+    "Vacuum": Platform.VACUUM,
+}
 
 ATTR_CURRENT = "current"
 ATTR_CURRENT_CONSUMPTION = "current_consumption"
 ATTR_VOLTAGE = "voltage"
 ATTR_UPDATED_AT = "updated_at"
 
+# Tuya Devices
+CONF_TUYA_IP = "ip"
+CONF_TUYA_GWID = "gwId"
+CONF_TUYA_VERSION = "version"
+
 # config flow
 CONF_LOCAL_KEY = "local_key"
 CONF_ENABLE_DEBUG = "enable_debug"
 CONF_PROTOCOL_VERSION = "protocol_version"
+CONF_NODE_ID = "node_id"
+CONF_GATEWAY_ID = "gateway_id"
 CONF_DPS_STRINGS = "dps_strings"
 CONF_MODEL = "model"
 CONF_PRODUCT_KEY = "product_key"
@@ -38,15 +53,21 @@ CONF_USER_ID = "user_id"
 CONF_ENABLE_ADD_ENTITIES = "add_entities"
 
 
-CONF_ACTION = "action"
 CONF_ADD_DEVICE = "add_device"
 CONF_EDIT_DEVICE = "edit_device"
-CONF_SETUP_CLOUD = "setup_cloud"
+CONF_CONFIGURE_CLOUD = "configure_cloud"
 CONF_NO_CLOUD = "no_cloud"
 CONF_MANUAL_DPS = "manual_dps_strings"
 CONF_DEFAULT_VALUE = "dps_default_value"
 CONF_RESET_DPIDS = "reset_dpids"
 CONF_PASSIVE_ENTITY = "is_passive_entity"
+CONF_DEVICE_SLEEP_TIME = "device_sleep_time"
+
+# ALARM
+CONF_ALARM_SUPPORTED_STATES = "alarm_supported_states"
+
+# Binary_sensor, Siren
+CONF_STATE_ON = "state_on"
 
 # light
 CONF_BRIGHTNESS_LOWER = "brightness_lower"
@@ -57,6 +78,8 @@ CONF_COLOR_TEMP_MIN_KELVIN = "color_temp_min_kelvin"
 CONF_COLOR_TEMP_MAX_KELVIN = "color_temp_max_kelvin"
 CONF_COLOR_TEMP_REVERSE = "color_temp_reverse"
 CONF_MUSIC_MODE = "music_mode"
+CONF_SCENE_VALUES = "scene_values"
+CONF_SCENE_VALUES_FRIENDLY = "scene_values_friendly"
 
 # switch
 CONF_CURRENT = "current"
@@ -84,13 +107,14 @@ CONF_FAN_DPS_TYPE = "fan_dps_type"
 
 # sensor
 CONF_SCALING = "scaling"
+CONF_STATE_CLASS = "state_class"
 
 # climate
 CONF_TARGET_TEMPERATURE_DP = "target_temperature_dp"
 CONF_CURRENT_TEMPERATURE_DP = "current_temperature_dp"
 CONF_TEMPERATURE_STEP = "temperature_step"
-CONF_MAX_TEMP_DP = "max_temperature_dp"
-CONF_MIN_TEMP_DP = "min_temperature_dp"
+CONF_MIN_TEMP = "min_temperature"
+CONF_MAX_TEMP = "max_temperature"
 CONF_PRECISION = "precision"
 CONF_TARGET_PRECISION = "target_precision"
 CONF_HVAC_MODE_DP = "hvac_mode_dp"
@@ -100,8 +124,10 @@ CONF_PRESET_SET = "preset_set"
 CONF_HEURISTIC_ACTION = "heuristic_action"
 CONF_HVAC_ACTION_DP = "hvac_action_dp"
 CONF_HVAC_ACTION_SET = "hvac_action_set"
+CONF_HVAC_ADD_OFF = "hvac_add_off"
 CONF_ECO_DP = "eco_dp"
 CONF_ECO_VALUE = "eco_value"
+CONF_FAN_SPEED_LIST = "fan_speed_list"
 
 # vacuum
 CONF_POWERGO_DP = "powergo_dp"
@@ -121,16 +147,34 @@ CONF_FAULT_DP = "fault_dp"
 CONF_PAUSED_STATE = "paused_state"
 CONF_RETURN_MODE = "return_mode"
 CONF_STOP_STATUS = "stop_status"
+CONF_PAUSE_DP = "pause_dp"
 
 # number
 CONF_MIN_VALUE = "min_value"
 CONF_MAX_VALUE = "max_value"
-CONF_STEPSIZE_VALUE = "step_size"
+CONF_STEPSIZE = "step_size"
 
 # select
 CONF_OPTIONS = "select_options"
 CONF_OPTIONS_FRIENDLY = "select_options_friendly"
 
+# Remote
+CONF_RECEIVE_DP = "receive_dp"
+
 # States
 ATTR_STATE = "raw_state"
 CONF_RESTORE_ON_RECONNECT = "restore_on_reconnect"
+
+# Categories
+ENTITY_CATEGORY = {
+    "None": None,
+    "Configuration": EntityCategory.CONFIG,
+    "Diagnostic": EntityCategory.DIAGNOSTIC,
+}
+
+# Default Categories
+DEFAULT_CATEGORIES = {
+    "CONTROL": ["switch", "climate", "fan", "vacuum", "light"],
+    "CONFIG": ["select", "number", "button"],
+    "DIAGNOSTIC": ["sensor", "binary_sensor"],
+}

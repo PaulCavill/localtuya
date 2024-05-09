@@ -1,7 +1,9 @@
 """Platform to locally control Tuya-based fan devices."""
+
 import logging
 import math
 from functools import partial
+from .config_flow import _col_to_select
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -9,9 +11,7 @@ from homeassistant.components.fan import (
     DIRECTION_FORWARD,
     DIRECTION_REVERSE,
     DOMAIN,
-    SUPPORT_DIRECTION,
-    SUPPORT_OSCILLATE,
-    SUPPORT_SET_SPEED,
+    FanEntityFeature,
     FanEntity,
 )
 from homeassistant.util.percentage import (
@@ -41,9 +41,9 @@ _LOGGER = logging.getLogger(__name__)
 def flow_schema(dps):
     """Return schema used in config flow."""
     return {
-        vol.Optional(CONF_FAN_SPEED_CONTROL): vol.In(dps),
-        vol.Optional(CONF_FAN_OSCILLATING_CONTROL): vol.In(dps),
-        vol.Optional(CONF_FAN_DIRECTION): vol.In(dps),
+        vol.Optional(CONF_FAN_SPEED_CONTROL): _col_to_select(dps, is_dps=True),
+        vol.Optional(CONF_FAN_OSCILLATING_CONTROL): _col_to_select(dps, is_dps=True),
+        vol.Optional(CONF_FAN_DIRECTION): _col_to_select(dps, is_dps=True),
         vol.Optional(CONF_FAN_DIRECTION_FWD, default="forward"): cv.string,
         vol.Optional(CONF_FAN_DIRECTION_REV, default="reverse"): cv.string,
         vol.Optional(CONF_FAN_SPEED_MIN, default=1): cv.positive_int,
@@ -189,33 +189,35 @@ class LocaltuyaFan(LocalTuyaEntity, FanEntity):
         self.schedule_update_ha_state()
 
     @property
-    def supported_features(self) -> int:
+    def supported_features(self) -> FanEntityFeature:
         """Flag supported features."""
-        features = 0
+        features = FanEntityFeature(0)
 
         if self.has_config(CONF_FAN_OSCILLATING_CONTROL):
-            features |= SUPPORT_OSCILLATE
+            features |= FanEntityFeature.OSCILLATE
 
         if self.has_config(CONF_FAN_SPEED_CONTROL):
-            features |= SUPPORT_SET_SPEED
+            features |= FanEntityFeature.SET_SPEED
 
         if self.has_config(CONF_FAN_DIRECTION):
-            features |= SUPPORT_DIRECTION
+            features |= FanEntityFeature.DIRECTION
 
         return features
 
     @property
     def speed_count(self) -> int:
         """Speed count for the fan."""
+        if self._use_ordered_list:
+            return len(self._ordered_list)
         speed_count = int_states_in_range(self._speed_range)
         _LOGGER.debug("Fan speed_count: %s", speed_count)
         return speed_count
 
     def status_updated(self):
         """Get state of Tuya fan."""
-        self._is_on = self.dps(self._dp_id)
+        self._is_on = self.dp_value(self._dp_id)
 
-        current_speed = self.dps_conf(CONF_FAN_SPEED_CONTROL)
+        current_speed = self.dp_value(CONF_FAN_SPEED_CONTROL)
         if self._use_ordered_list:
             _LOGGER.debug(
                 "Fan current_speed ordered_list_item_to_percentage: %s from %s",
@@ -241,11 +243,11 @@ class LocaltuyaFan(LocalTuyaEntity, FanEntity):
         _LOGGER.debug("Fan current_percentage: %s", self._percentage)
 
         if self.has_config(CONF_FAN_OSCILLATING_CONTROL):
-            self._oscillating = self.dps_conf(CONF_FAN_OSCILLATING_CONTROL)
+            self._oscillating = self.dp_value(CONF_FAN_OSCILLATING_CONTROL)
             _LOGGER.debug("Fan current_oscillating : %s", self._oscillating)
 
         if self.has_config(CONF_FAN_DIRECTION):
-            value = self.dps_conf(CONF_FAN_DIRECTION)
+            value = self.dp_value(CONF_FAN_DIRECTION)
             if value is not None:
                 if value == self._config.get(CONF_FAN_DIRECTION_FWD):
                     self._direction = DIRECTION_FORWARD
