@@ -173,7 +173,6 @@ async def async_setup(hass: HomeAssistant, config: dict):
     hass.services.async_register(DOMAIN, SERVICE_RELOAD, _handle_reload)
 
     hass.services.async_register(
-    hass.services.async_register(
         DOMAIN, SERVICE_SET_DP, _handle_set_dp, schema=SERVICE_SET_DP_SCHEMA
     )
 
